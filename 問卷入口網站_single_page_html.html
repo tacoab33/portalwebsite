@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>研究說明與問卷入口</title>
+  <style>
+    :root{--bg:#f7f8fb;--card:#fff;--accent:#2563eb;--muted:#6b7280}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,'Noto Sans CJK TC',Helvetica,Arial,'PingFang TC';background:var(--bg);color:#111}
+    .wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px}
+    .card{width:100%;max-width:880px;background:var(--card);border-radius:12px;box-shadow:0 8px 30px rgba(16,24,40,0.08);padding:32px}
+    h1{margin:0 0 8px;font-size:28px}
+    p.lead{margin:0 0 20px;color:var(--muted)}
+    .description{line-height:1.7;color:#222}
+    .actions{display:flex;gap:12px;margin-top:22px;flex-wrap:wrap}
+    .btn{background:var(--accent);color:#fff;border:0;padding:12px 18px;border-radius:10px;font-weight:600;cursor:pointer}
+    .btn:active{transform:translateY(1px)}
+    .btn.secondary{background:transparent;color:var(--accent);border:1px solid rgba(37,99,235,0.12)}
+    .small{font-size:13px;color:var(--muted)}
+    .foot{margin-top:18px;font-size:13px;color:var(--muted)}
+    @media (max-width:520px){.card{padding:20px}h1{font-size:20px}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <main class="card" role="main">
+      <h1>研究說明</h1>
+      <p class="lead">感謝您願意參與本研究。請在閱讀下列說明並同意後按「開始填寫問卷」。系統會將您導向其中一份問卷，並嘗試在同一台裝置上維持您被分配到的問卷，以降低重複填答的機率。</p>
+
+      <section class="description" aria-labelledby="sec-title">
+        <h2 id="sec-title" style="font-size:16px;margin:0 0 8px">研究目的與注意事項</h2>
+        <ul>
+          <li>研究目的：請在此撰寫簡短的研究目的（例如：探討 X 與 Y 的關係）。</li>
+          <li>參與資格：請在此填寫參與者資格（例如：年齡、地區、職業等）。</li>
+          <li>填答時間：約 5–10 分鐘。</li>
+          <li>隱私聲明：所有資料將以匿名方式處理，僅供研究使用。</li>
+          <li>如需聯絡：請提供聯絡信箱或電話。</li>
+        </ul>
+      </section>
+
+      <div class="actions">
+        <button id="startBtn" class="btn">開始填寫問卷</button>
+        <button id="resetBtn" class="btn secondary">重新分配（同一裝置）</button>
+        <div style="flex:1"></div>
+        <div class="small">您已被分配：<span id="assignedText">尚未分配</span></div>
+      </div>
+
+      <div class="foot">
+        <strong>提醒：</strong>若您希望避免重複填答，請勿在不同瀏覽器或無痕/私密視窗中再次填寫，系統的防重複僅依本瀏覽器的本地儲存（localStorage）。
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // ======= IMPORTANT: 在下面陣列中填入你四個 Google 表單的實際網址（完整 URL），例如：
+    // const FORMS = [
+    //   'https://docs.google.com/forms/d/e/XXXXXXXX/viewform',
+    //   'https://docs.google.com/forms/d/e/YYYYYYYY/viewform',
+    //   'https://docs.google.com/forms/d/e/ZZZZZZZZ/viewform',
+    //   'https://docs.google.com/forms/d/e/AAAAAAAA/viewform'
+    // ];
+
+    const FORMS = [
+      'REPLACE_WITH_FORM_URL_1',
+      'REPLACE_WITH_FORM_URL_2',
+      'REPLACE_WITH_FORM_URL_3',
+      'REPLACE_WITH_FORM_URL_4'
+    ];
+
+    const STORAGE_KEY = 'research_assigned_form_v1';
+    const startBtn = document.getElementById('startBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const assignedText = document.getElementById('assignedText');
+
+    function getAssigned(){
+      try{ return localStorage.getItem(STORAGE_KEY); }catch(e){return null}
+    }
+    function setAssigned(url){
+      try{ localStorage.setItem(STORAGE_KEY, url); }catch(e){ /* ignore */ }
+    }
+    function pickRandom(){
+      // 隨機選一個 index
+      const i = Math.floor(Math.random() * FORMS.length);
+      return FORMS[i];
+    }
+
+    function updateAssignedLabel(){
+      const a = getAssigned();
+      assignedText.textContent = a ? a : '尚未分配';
+    }
+
+    startBtn.addEventListener('click', ()=>{
+      // 若尚未分配，則隨機分配；若已分配，直接導向同一份表單
+      let assigned = getAssigned();
+      if(!assigned){
+        assigned = pickRandom();
+        setAssigned(assigned);
+      }
+      // 基本檢查：若陣列尚未替換真實連結，提醒使用者
+      if(assigned.startsWith('REPLACE_WITH')){
+        alert('請先在原始程式碼中將 FORMS 陣列替換成四個 Google 表單的實際連結。');
+        return;
+      }
+      // 開新分頁導向表單
+      window.open(assigned, '_blank', 'noopener');
+      updateAssignedLabel();
+    });
+
+    resetBtn.addEventListener('click', ()=>{
+      // 允許使用者在同一裝置重新分配（例如研究者為了測試）
+      try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
+      updateAssignedLabel();
+      alert('已清除本裝置分配；下次按「開始填寫問卷」會重新隨機分配。');
+    });
+
+    // 頁面載入時顯示目前分配
+    updateAssignedLabel();
+  </script>
+</body>
+</html>
